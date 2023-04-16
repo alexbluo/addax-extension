@@ -1,0 +1,24 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Advertiser {
+  id         Int        @id @default(autoincrement())
+  name       String     @unique
+  categories Category[]
+
+  @@map("advertisers")
+}
+
+model Category {
+  id          Int          @id @default(autoincrement())
+  category    String       @unique
+  advertisers Advertiser[]
+
+  @@map("categories")
+}

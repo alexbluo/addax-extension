@@ -1,0 +1,59 @@
+{
+  "name": "extension",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm-watch",
+    "bundle": "webpack build --mode production",
+    "build": "next build && next export && mv out/_next out/assets && sed -i '' 's/\\/_next/\\/assets/g' out/**.html && cp manifest.json out && yarn bundle",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "localforage": "^1.10.0",
+    "next": "^12.3.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.12",
+    "eslint": "^8.24.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-config-next": "^12.3.1",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-jsx-a11y": "^6.6.1",
+    "eslint-plugin-react": "^7.31.8",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "npm-watch": "^0.11.0",
+    "postcss": "^8.4.14",
+    "prettier": "^2.7.1",
+    "prettier-plugin-tailwindcss": "^0.1.13",
+    "tailwindcss": "^3.1.6",
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0"
+  },
+  "watch": {
+    "build": {
+      "patterns": [
+        "pages/**",
+        "public/**",
+        "scripts/**",
+        "*.config.js",
+        "*.json",
+        "index.css"
+      ],
+      "ignore": [
+        "out",
+        "node_modules",
+        ".next",
+        ".vscode"
+      ],
+      "extensions": [
+        "js",
+        "ts",
+        "tsx",
+        "json"
+      ]
+    }
+  }
+}
