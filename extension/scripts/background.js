@@ -1,30 +1,29 @@
-import localforage from "localforage";
-
 // reminder that to see changes, must go to chrome://extensions and inspect service worker, also reload button...
 // content script output in webpage
-const parseAddax = async (tabId, changeInfo) => {
+
+// check for addax tag in head
+// if present, get site categories and add to chrome.storage
+// auction stuff
+// parse # of ins with addax class
+// request that many ads from advertiser
+// https://medium.com/frontendweb/how-to-add-google-adsense-in-your-nextjs-89e439f74de3
+// set ins content to returned ad through content script
+// page category validation and publisher endpoint not needed
+const addax = async (tabId, changeInfo) => {
   if (changeInfo.status === "complete") {
-    await localforage.setItem("interests", [
-      ...((await localforage.getItem("interests")) || []),
-      123,
-    ]);
-    const interests = await localforage.getItem("interests");
-    console.log(interests);
-
-    fetch(
-      `http://localhost:5000/api/advertiser?category=${
-        interests ? interests[0] : 0
-      }`
-    )
-      .then((res) => res.json())
-      .then((data) => console.log(data));
-
-    // console.log(await document.browsingTopics());
     chrome.scripting.executeScript({
       target: { tabId: tabId },
-      files: ["content.js"],
+      files: ["./parseAddax.js"],
     });
+
+    // fetch(
+    //   `http://localhost:5000/api/advertiser?category=${
+    //     interests ? interests[0] : 0
+    //   }`
+    // )
+    //   .then((res) => res.json())
+    //   .then((data) => console.log(data));
   }
 };
 
-chrome.tabs.onUpdated.addListener(parseAddax);
+chrome.tabs.onUpdated.addListener(addax);
