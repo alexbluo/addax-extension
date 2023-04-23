@@ -1,11 +1,17 @@
 module.exports = {
   extends: [
     "airbnb",
+    "airbnb-typescript",
     "next/core-web-vitals",
     "plugin:import/recommended",
+    "plugin:import/typescript",
     "prettier",
   ],
   ignorePatterns: "*.js",
+  parserOptions: {
+    project: ["tsconfig.json", "tsconfig.scripts.json"],
+    tsconfigRootDir: __dirname,
+  },
   rules: {
     quotes: "off",
     camelcase: "off",

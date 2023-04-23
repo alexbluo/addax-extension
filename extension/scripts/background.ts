@@ -13,44 +13,38 @@
 // publisher setting is in meta tag
 
 const parseAddax = () => {
-  const addax = document.querySelector("meta[name=addax]");
-  const categories = addax?.content.split(" ").map((i) => parseInt(i));
+  const addax: HTMLMetaElement | null =
+    document.querySelector("meta[name=addax]");
+  const categories = addax?.content.split(" ").map((i) => parseInt(i, 10));
 
   return categories;
 };
 
-const injectAds = () => {};
+// const injectAds = () => {};
 
-const addax = async (tabId, changeInfo) => {
+const addax = async (tabId: number, changeInfo: chrome.tabs.TabChangeInfo) => {
   if (changeInfo.status === "complete") {
     const categories = await chrome.scripting
       .executeScript({
-        target: { tabId: tabId },
+        target: { tabId },
         func: parseAddax,
       })
       .then((data) => data[0].result);
 
-    // await chrome.storage.local.clear();
+    if (!categories) return;
+
     const { interests } = await chrome.storage.local.get({
+      // default values for each id if no interests exist yet
       interests: Array(350)
-        .fill()
+        .fill("")
         .reduce((acc, cur, i) => ({ ...acc, [i]: 0 }), {}),
     });
-    console.log(interests);
 
     for (const category of categories) {
       interests[category] += 1;
     }
 
     await chrome.storage.local.set({ interests });
-
-    // fetch(
-    //   `http://localhost:5000/api/advertiser?category=${
-    //     interests ? interests[0] : 0
-    //   }`
-    // )
-    //   .then((res) => res.json())
-    //   .then((data) => console.log(data));
   }
 };
 

@@ -1,16 +1,16 @@
 {
-  "name": "browser-extension",
+  "name": "addax-extension",
   "private": true,
   "version": "0.1.0",
-  "repository": "https://github.com/kzhong130/addax-prelim-code.git",
   "workspaces": [
     "extension",
-    "server"
+    "server",
+    "test-site"
   ],
   "scripts": {
     "start": "yarn workspace server start",
     "build": "yarn workspace extension build",
-    "dev": "concurrently -i \"yarn workspace server dev\" \"yarn workspace extension dev\""
+    "dev": "concurrently -i \"yarn workspace server dev\" \"yarn workspace extension dev\" \"yarn workspace test-site dev\""
   },
   "devDependencies": {
     "concurrently": "^7.0.0"
