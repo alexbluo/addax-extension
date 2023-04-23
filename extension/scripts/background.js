@@ -1,6 +1,6 @@
-// reminder that to see changes, must go to chrome://extensions and inspect service worker, also reload button...
+// reminder that to see changes, must go to chrome://extensions and click the reload button
 // also make sure dev server is running...
-// content script output in webpage
+// background script output in service worker inspect, content script output in webpage
 
 // check for addax tag in head
 // if present, get site categories and add to chrome.storage
@@ -17,8 +17,9 @@ const parseAddax = () => {
   const categories = addax?.content.split(" ").map((i) => parseInt(i));
 
   return categories;
-  // chrome.runtime.sendMessage(categories || null)
 };
+
+const injectAds = () => {};
 
 const addax = async (tabId, changeInfo) => {
   if (changeInfo.status === "complete") {
@@ -29,11 +30,20 @@ const addax = async (tabId, changeInfo) => {
       })
       .then((data) => data[0].result);
 
-    console.log(categories);
+    // await chrome.storage.local.clear();
+    const { interests } = await chrome.storage.local.get({
+      interests: Array(350)
+        .fill()
+        .reduce((acc, cur, i) => ({ ...acc, [i]: 0 }), {}),
+    });
+    console.log(interests);
 
-    // chrome.runtime.onMessage.addListener((data, sender, res) => {
-    //   console.log(data)
-    // })
+    for (const category of categories) {
+      interests[category] += 1;
+    }
+
+    await chrome.storage.local.set({ interests });
+
     // fetch(
     //   `http://localhost:5000/api/advertiser?category=${
     //     interests ? interests[0] : 0
