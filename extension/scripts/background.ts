@@ -22,7 +22,22 @@ const parseTabUrl = (url: string) => {
   return url.trim();
 };
 
-// const injectAds = () => {};
+const getTopInterests = (obj: { [key: string]: number }, n: number) => {
+  const sortedEntries = Object.entries(obj).sort((a: any, b: any) => {
+    return b[1] - a[1];
+  });
+
+  const last = sortedEntries[n - 1][1];
+  const result = sortedEntries.filter((entry: any) => {
+    return entry[1] >= last;
+  });
+
+  return Object.keys(Object.fromEntries(result));
+};
+
+const injectAds = (href: string) => {
+  console.log(href);
+};
 
 const addax = async (
   tabId: number,
@@ -31,7 +46,7 @@ const addax = async (
 ) => {
   if (changeInfo.status === "complete") {
     let err = false;
-    const categories = await chrome.scripting
+    const pageCategories = await chrome.scripting
       .executeScript({
         target: { tabId },
         func: parseAddax,
@@ -42,11 +57,40 @@ const addax = async (
       });
 
     // stop execution if addax is not enabled for the page
-    if (!categories || err) return;
+    if (!pageCategories || err) return;
+
+    const { interests } = await chrome.storage.local.get({
+      // default values for each id if no interests exist yet
+      interests: Array.from({ length: 349 }, (_, i) => i + 1).reduce(
+        (acc, cur, i) => ({ ...acc, [i]: 0 }),
+        {}
+      ),
+    });
+
+    const n = 5;
+    const topInterests = getTopInterests(interests, n);
+    console.log(topInterests)
+    const randomInterest = topInterests[Math.floor(Math.random() * n)];
+    console.log(randomInterest)
+
+    // get list of advertisers
+    const { data: advertisers } = await fetch(
+      `http://localhost:5000/api/advertiser/getAdvertisers?category=${randomInterest}`
+    ).then((res) => res.json());
+
+    console.log(advertisers);
+
+    // generate uuid and post each advertiser to run auction
+
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      func: injectAds,
+      args: ["lol"],
+    });
 
     const parsedUrl = parseTabUrl(tab.url!);
 
-    // check if page has been visited, if so then don't increment interests
+    // check if page has been visited in the past 24 hours (default)
     const historySearch = await chrome.history.search({
       text: `"${parsedUrl}"`,
     });
@@ -56,25 +100,12 @@ const addax = async (
       (item: chrome.history.HistoryItem) => item.url === parsedUrl
     );
 
-    console.log(visited);
-
-    const { interests } = await chrome.storage.local.get({
-      // default values for each id if no interests exist yet
-      interests: Array(350)
-        .fill("")
-        .reduce((acc, cur, i) => ({ ...acc, [i]: 0 }), {}),
-    });
-
-    // increment local user interest profile for publishder categories
     if (!visited) {
-      for (const category of categories) {
+      // increment local user interest profile for publishder categories
+      for (const category of pageCategories) {
         interests[category] += 1;
       }
     }
-
-    console.log(interests);
-    // retrieve avertiser list and fetch endpoints
-    // ^ might want to do before incrementing to dissuade publishers from setting to higher conversion categories
 
     await chrome.storage.local.set({ interests });
   }
