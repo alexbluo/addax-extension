@@ -1,50 +1,41 @@
 import { PrismaClient } from "@prisma/client";
-import ContentCategory from "../categories";
 
 const prisma = new PrismaClient();
 
 interface Advertiser {
   name: string;
+  endpoint: string;
 }
-
-// interface CategoryRecord {
-//   category: string;
-//   advertisers: {
-//     connectOrCreate: Advertiser[];
-//   };
-// }
 
 (async () => {
   const advertiserPool: Advertiser[] = [
-    { name: "Jacob" },
-    { name: "Adam" },
-    { name: "Alex" },
-    { name: "Ethan" },
+    { name: "Jacob", endpoint: "/api/jacob" },
+    { name: "Adam", endpoint: "/api/adam" },
+    { name: "Alex", endpoint: "/api/alex" },
+    { name: "Ethan", endpoint: "/api/ethan" },
   ];
 
-  const categoryPoolLength = Object.values(ContentCategory).length / 2;
+  const categories = Array.from({ length: 349 }, (_, i) => i + 1);
+  const data = advertiserPool.map(({ name, endpoint }) => {
+    const shuffled = categories.sort(() => 0.5 - Math.random());
 
-  const promises = [];
-  for (let id = 0; id < categoryPoolLength; id++) {
-    const nAdvertisers = id % advertiserPool.length;
-    const advertisers = advertiserPool.slice(0, nAdvertisers);
+    const n = Math.floor(Math.random() * 349);
+    const selected = shuffled.slice(0, n);
 
-    const categoryRecord = {
-      category: id.toString(),
-      advertisers: {
-        connectOrCreate: advertisers.map(({ name }) => ({
-          where: {
-            name,
-          },
-          create: {
-            name,
-          },
+    return {
+      name,
+      endpoint,
+      categories: {
+        connectOrCreate: selected.map((id) => ({
+          where: { category: id },
+          create: { category: id },
         })),
       },
     };
+  });
 
-    promises.push(prisma.category.create({ data: categoryRecord }));
+  for (let i = 0; i < data.length; i++) {
+    // eslint-disable-next-line no-await-in-loop
+    await prisma.advertiser.create({data: data[i]})
   }
-
-  await Promise.all(promises);
 })();

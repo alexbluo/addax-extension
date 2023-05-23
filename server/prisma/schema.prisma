@@ -8,17 +8,12 @@ datasource db {
 }
 
 model Advertiser {
-  id         Int        @id @default(autoincrement())
+  endpoint   String     @id @unique
   name       String     @unique
   categories Category[]
-
-  @@map("advertisers")
 }
 
 model Category {
-  id          Int          @id @default(autoincrement())
-  category    String       @unique
+  category    Int          @id @unique
   advertisers Advertiser[]
-
-  @@map("categories")
 }
