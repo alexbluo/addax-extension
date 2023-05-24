@@ -4,6 +4,7 @@
 
 // https://medium.com/frontendweb/how-to-add-google-adsense-in-your-nextjs-89e439f74de3
 // set ins content to returned ad through content script
+import { v4 as uuidv4 } from "uuid";
 
 const parseAddax = () => {
   const addax = document.querySelector<HTMLMetaElement>("meta[name=addax]");
@@ -35,9 +36,13 @@ const getTopInterests = (obj: { [key: string]: number }, n: number) => {
   return Object.keys(Object.fromEntries(result));
 };
 
-const injectAds = (href: string) => {
-  console.log(href);
+const getNumberAds = () => {
+  const ins = document.querySelectorAll<HTMLElement>("ins[class=addax]");
+
+  return ins.length;
 };
+
+const injectAds = (href: string) => {};
 
 const addax = async (
   tabId: number,
@@ -69,19 +74,29 @@ const addax = async (
 
     const n = 5;
     const topInterests = getTopInterests(interests, n);
-    console.log(topInterests)
-    const randomInterest = topInterests[Math.floor(Math.random() * n)];
-    console.log(randomInterest)
+    const randomTopInterest = topInterests[Math.floor(Math.random() * n)];
 
     // get list of advertisers
-    const { data: advertisers } = await fetch(
-      `http://localhost:5000/api/advertiser/getAdvertisers?category=${randomInterest}`
+    const { advertisers } = await fetch(
+      `http://localhost:5000/api/publisher/advertisers?category=${randomTopInterest}`
     ).then((res) => res.json());
 
-    console.log(advertisers);
+    // find number of <ins class="addax"> ad slots
+    const numberAds = await chrome.scripting
+      .executeScript({
+        target: { tabId },
+        func: getNumberAds,
+      })
+      .then((data) => data[0].result);
 
-    // generate uuid and post each advertiser to run auction
+    // generate uuid and post each advertiser via publisher server to run auction
+    const data = await fetch(
+      `http://localhost:5000/api/publisher/winner?advertisers=${JSON.stringify(advertisers)}&numberAds=${numberAds}&interest=${randomTopInterest}&auctionId=${uuidv4()}`
+    ).then((res) => res.json());
 
+    console.log(data);
+
+    // inject ad returned from winner
     await chrome.scripting.executeScript({
       target: { tabId },
       func: injectAds,
@@ -107,6 +122,7 @@ const addax = async (
       }
     }
 
+    // TODO change to sync
     await chrome.storage.local.set({ interests });
   }
 };
