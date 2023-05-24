@@ -43,7 +43,13 @@ const getNumberAds = () => {
   return ins.length;
 };
 
-const injectAds = (href: string) => {};
+const injectAds = (src: string, i: number) => {
+  const ins = document.querySelectorAll<HTMLElement>("ins[class=addax]")[i];
+
+  const img = document.createElement("img");
+  img.src = src;
+  ins.replaceChildren(img);
+};
 
 const addax = async (
   tabId: number,
@@ -96,16 +102,14 @@ const addax = async (
       const data = await fetch(
         `http://localhost:5000/api/publisher/winner?advertisers=${JSON.stringify(
           advertisers
-        )}&numberAds=${numberAds}&interest=${randomTopInterest}&auctionId=${uuidv4()}`
+        )}&interest=${randomTopInterest}&auctionId=${uuidv4()}`
       ).then((res) => res.json());
-
-      console.log(data);
 
       // inject ad returned from winner
       await chrome.scripting.executeScript({
         target: { tabId },
         func: injectAds,
-        args: ["lol"],
+        args: [data, i],
       });
     }
 
