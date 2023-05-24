@@ -9,10 +9,10 @@ interface Advertiser {
 
 (async () => {
   const advertiserPool: Advertiser[] = [
-    { name: "Jacob", endpoint: "http://localhost:5000/api/jacob" },
-    { name: "Adam", endpoint: "http://localhost:5000/api/adam" },
-    { name: "Alex", endpoint: "http://localhost:5000/api/alex" },
-    { name: "Ethan", endpoint: "http://localhost:5000/api/ethan" },
+    { name: "Jacob", endpoint: "http://localhost:5000/api/advertiser/jacob" },
+    { name: "Adam", endpoint: "http://localhost:5000/api/advertiser/adam" },
+    { name: "Alex", endpoint: "http://localhost:5000/api/advertiser/alex" },
+    { name: "Ethan", endpoint: "http://localhost:5000/api/advertiser/ethan" },
   ];
 
   const categories = Array.from({ length: 349 }, (_, i) => i + 1);

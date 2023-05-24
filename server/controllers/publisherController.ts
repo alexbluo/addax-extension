@@ -27,7 +27,6 @@ const getAdvertisers = async (
 
 interface GetWinnerRequestQuery {
   advertisers: string;
-  numberAds: string;
   interest: string;
   auctionId: string;
 }
@@ -36,12 +35,15 @@ const getWinner = async (
   req: Request<{}, {}, {}, GetWinnerRequestQuery>,
   res: Response
 ) => {
-  const { advertisers, numberAds, interest, auctionId } = req.query;
+  const { query } = req;
+  const advertisers = JSON.parse(query.advertisers);
 
+  const winner = advertisers[Math.floor(Math.random() * advertisers.length)];
 
   // run addax protocol with aux server
+  const ad = await fetch(winner.endpoint).then((response) => response.json());
 
-  res.status(200).json();
+  res.status(200).json(ad);
 };
 
 export { getAdvertisers, getWinner };

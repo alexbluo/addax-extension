@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 // reminder that to see changes, must go to chrome://extensions and click the reload button
 // also make sure dev server is running...
 // background script output in service worker inspect, content script output in webpage
@@ -72,16 +73,6 @@ const addax = async (
       ),
     });
 
-    const n = 5;
-    const topInterests = getTopInterests(interests, n);
-    const randomTopInterest = topInterests[Math.floor(Math.random() * n)];
-
-    // get list of advertisers
-    const { advertisers } = await fetch(
-      `http://localhost:5000/api/publisher/advertisers?category=${randomTopInterest}`
-    ).then((res) => res.json());
-
-    // find number of <ins class="addax"> ad slots
     const numberAds = await chrome.scripting
       .executeScript({
         target: { tabId },
@@ -89,19 +80,34 @@ const addax = async (
       })
       .then((data) => data[0].result);
 
-    // generate uuid and post each advertiser via publisher server to run auction
-    const data = await fetch(
-      `http://localhost:5000/api/publisher/winner?advertisers=${JSON.stringify(advertisers)}&numberAds=${numberAds}&interest=${randomTopInterest}&auctionId=${uuidv4()}`
-    ).then((res) => res.json());
+    for (let i = 0; i < numberAds; i += 1) {
+      const n = 5;
+      const topInterests = getTopInterests(interests, n);
+      const randomTopInterest = topInterests[Math.floor(Math.random() * n)];
 
-    console.log(data);
+      // get list of advertisers
+      const { advertisers } = await fetch(
+        `http://localhost:5000/api/publisher/advertisers?category=${randomTopInterest}`
+      ).then((res) => res.json());
 
-    // inject ad returned from winner
-    await chrome.scripting.executeScript({
-      target: { tabId },
-      func: injectAds,
-      args: ["lol"],
-    });
+      // find number of <ins class="addax"> ad slots
+
+      // generate uuid and post each advertiser via publisher server to run auction
+      const data = await fetch(
+        `http://localhost:5000/api/publisher/winner?advertisers=${JSON.stringify(
+          advertisers
+        )}&numberAds=${numberAds}&interest=${randomTopInterest}&auctionId=${uuidv4()}`
+      ).then((res) => res.json());
+
+      console.log(data);
+
+      // inject ad returned from winner
+      await chrome.scripting.executeScript({
+        target: { tabId },
+        func: injectAds,
+        args: ["lol"],
+      });
+    }
 
     const parsedUrl = parseTabUrl(tab.url!);
 
