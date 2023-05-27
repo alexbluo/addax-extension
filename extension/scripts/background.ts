@@ -1,10 +1,7 @@
 /* eslint-disable no-await-in-loop */
 // reminder that to see changes, must go to chrome://extensions and click the reload button
 // also make sure dev server is running...
-// background script output in service worker inspect, content script output in webpage
 
-// https://medium.com/frontendweb/how-to-add-google-adsense-in-your-nextjs-89e439f74de3
-// set ins content to returned ad through content script
 import { v4 as uuidv4 } from "uuid";
 
 const parseAddax = () => {
@@ -71,7 +68,7 @@ const addax = async (
     // stop execution if addax is not enabled for the page
     if (!pageCategories || err) return;
 
-    const { interests } = await chrome.storage.local.get({
+    const { interests } = await chrome.storage.sync.get({
       // default values for each id if no interests exist yet
       interests: Array.from({ length: 349 }, (_, i) => i + 1).reduce(
         (acc, cur, i) => ({ ...acc, [i]: 0 }),
@@ -79,6 +76,7 @@ const addax = async (
       ),
     });
 
+    // find number of <ins class="addax"> ad slots
     const numberAds = await chrome.scripting
       .executeScript({
         target: { tabId },
@@ -95,8 +93,6 @@ const addax = async (
       const { advertisers } = await fetch(
         `http://localhost:5000/api/publisher/advertisers?category=${randomTopInterest}`
       ).then((res) => res.json());
-
-      // find number of <ins class="addax"> ad slots
 
       // generate uuid and post each advertiser via publisher server to run auction
       const data = await fetch(
@@ -132,8 +128,7 @@ const addax = async (
       }
     }
 
-    // TODO change to sync
-    await chrome.storage.local.set({ interests });
+    await chrome.storage.sync.set({ interests });
   }
 };
 
